@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.6.0/Chart.bundle.min.js"></script>
+  <script src="https://d3js.org/d3-dsv.v2.min.js"></script>
+  <script src="https://d3js.org/d3-fetch.v2.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js"></script>
+</head>
+
+<body>
+  <select id="selectYear" onchange="reloadChart(this)">
+    <option value="2021">Select Year</option>
+    <option value="2019">2019</option>
+    <option value="2020">2020</option>
+    <option value="2021">2021</option>
+  </select>
+
+  <canvas id="myChart" width="250" height="100"></canvas>
+
+  <script>
+  function reloadChart(selectObject) {
+    var value = selectObject.value;
+    d3.csv('https://raw.githubusercontent.com/grothesk/data/main/sonit-mdm-particles-' + value + '.csv')
+            .then(makeChart);
+  }
+
+  function makeChart(data) {
+    var timeFormat = 'MM/DD/YYYY HH:mm';
+    var ts = data.map(function(d) {
+      return moment(d.ts)
+    });
+
+    var year = ts[0].year();
+    var yearPlus = year + 1;
+
+    var factor = 3618578.4/1000000.0;
+    var particles = data.map(function(d) {return factor * d.particles});
+    var warn = data.map(function(d) {return factor * 10});
+    var eingriff = data.map(function(d) {return factor * 15});
+
+    var chart = new Chart('myChart', {
+      type: 'line',
+      options:{
+        plugins: {
+          filler: {
+            propagate: true
+          }
+        },
+        annotation: {},
+        scales: {
+          yAxes : [{
+            ticks : {
+              max : 55,
+              min : 0
+            },
+            scaleLabel: {
+              display: true,
+              labelString: 'Mio. Partikel/qm'
+            }
+          }],
+          xAxes: [{
+            type: 'time',
+            ticks: {
+              source: 'data',
+            },
+            time: {
+              min: '01/01/' + year + ' 00:00',
+              max: '01/01/' + yearPlus + '00:00',
+              displayFormats: {
+                quarter: 'MMM YYYY'
+              },
+              parser: timeFormat,
+              tooltipFormat: 'll'
+            },
+            scaleLabel: {
+              display: true,
+              labelString: 't'
+            },
+          }],
+        }
+      },
+      data: {
+        labels: ts,
+        datasets: [
+          {
+            label: "Wochendurchschnitt",
+            data: particles,
+            borderWidth: 1,
+            lineTension: 0.1,
+            borderColor: 'blue',
+            borderWidth: 2,
+            spanGaps: true
+          },
+          {
+            label: "Warngrenze",
+            data: warn,
+            borderWidth: 1,
+            lineTension: 0.1,
+            borderColor: 'green',
+            backgroundColor: 'rgba(204, 255, 204, 0.1)',
+            fillOpacity: 1,
+            fill: 'origin',
+            borderWidth: 2,
+            spanGaps: true,
+            pointRadius: 1,
+            pointStyle: 'line',
+          },
+          {
+            label: "Eingriffsgrenze",
+            data: eingriff,
+            borderWidth: 1,
+            lineTension: 0.1,
+            borderColor: 'red',
+            backgroundColor: 'rgba(255, 204, 204, 0.1)',
+            fill: 1,
+            borderWidth: 2,
+            spanGaps: true,
+            pointRadius: 1,
+            pointStyle: 'line',
+          }
+          ],
+        }
+      })
+    }
+
+  // Default
+  d3.csv('https://raw.githubusercontent.com/grothesk/data/main/sonit-mdm-particles-2020.csv')
+     .then(makeChart);
+
+  </script>
+
+</body>
+</html>
