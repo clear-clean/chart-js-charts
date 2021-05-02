@@ -18,23 +18,19 @@
     <option value="2021">2021</option>
   </select>
 
-  <canvas id="myChart" width="250" height="100"></canvas>
+  <canvas id="myChart" width="230" height="100"></canvas>
 
   <script>
-    var chart;
-    var timeFormat = 'MM/DD/YYYY HH:mm';
-    var factor = 191422.8/1000000.0;
-    var value = '2021';
-
   var source = 'https://raw.githubusercontent.com/clear-clean/chart-js-charts/main/data/sonit-mdm-time-';
 
   function reloadChart(selectObject) {
-    value = selectObject.value;
+    var value = selectObject.value;
     d3.csv(source + value + '.csv')
-            .then(function(data) { return makeChart(data, false);});
+            .then(makeChart);
   }
 
-  function makeChart(data, init) {
+  function makeChart(data) {
+    var timeFormat = 'MM/DD/YYYY HH:mm';
     var ts = data.map(function(d) {
       return moment(d.ts)
     });
@@ -42,16 +38,12 @@
     var year = ts[0].year();
     var yearPlus = year + 1;
 
+    var factor = 191422.8/1000000.0;
     var particles = data.map(function(d) {return factor * d.particles});
     var warn = data.map(function(d) {return factor * 10});
     var eingriff = data.map(function(d) {return factor * 15});
 
-
-    if (!init) {
-      chart.destroy();
-    }
-
-    chart = new Chart('myChart', {
+    var chart = new Chart('myChart', {
       type: 'line',
       options:{
         plugins: {
@@ -64,8 +56,7 @@
           yAxes : [{
             ticks : {
               max : 3,
-              min : 0,
-              stepSize: 1
+              min : 0
             },
             scaleLabel: {
               display: true,
@@ -137,8 +128,9 @@
       })
     }
 
-  d3.csv(source + value + '.csv')
-     .then(function(data) { return makeChart(data, true);});
+  // Default
+  d3.csv(source + '2021.csv')
+     .then(makeChart);
 
   </script>
 
