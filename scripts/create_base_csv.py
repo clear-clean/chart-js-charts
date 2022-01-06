@@ -2,7 +2,7 @@ import csv
 import datetime as dt
 
 
-YEAR = 2021
+YEAR = 2022
 DEFAULT = 'null'
 output = 'sonit-mdm-time-{}.csv'.format(YEAR)
 
